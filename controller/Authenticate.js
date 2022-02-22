@@ -12,7 +12,9 @@ let transporter = nodemailer.createTransport({
     user: process.env.email,
     pass: process.env.password
   }
-})
+});
+
+
 function controller() {
 
   this.login = async (req, res) => {
@@ -22,16 +24,16 @@ function controller() {
     } else if (_.isEmpty(password)) {
       res.send({ status: false, message: "Plz,Enter Password" });
     } else {
-      await user.find({ email: email }, (err, userdata) => {
+      await user.findOne({ email: email }, (err, userdata) => {
         if (userdata.length <= 0) return res.json("please sign up");
-        bcrypt.compare(password, userdata[0].password, function (err, result) {
+        bcrypt.compare(password, userdata.password, function (err, result) {
           if (result) {
-            let Token = jwt.sign({ email: email }, process.env.SECRET_KEY, { expiresIn: "10m" });
+            let Token = jwt.sign({ id: userdata._id, email: email }, process.env.SECRET_KEY, { expiresIn: "10m" });
             return res.send({ status: true, Data: userdata[0], token: Token });
           }
           else return res.json("please enter correct password");
         });
-      });
+      }).clone();
     }
   };
 
